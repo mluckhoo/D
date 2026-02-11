@@ -3,7 +3,7 @@ import { Canvas } from '@react-three/fiber/native';
 import { AvatarModel } from './AvatarModel';
 
 interface AvatarCanvasProps {
-  /** URI to the GLB avatar model */
+  /** URI or require() asset for the GLB avatar model (MetaHuman, Avaturn, etc.) */
   modelUri?: string;
   /** Whether blendshape demo animation is running */
   demoAnimation?: boolean;
@@ -13,7 +13,8 @@ interface AvatarCanvasProps {
  * R3F Canvas wrapper for the 3D avatar.
  *
  * Sets up camera at bust level with soft studio lighting
- * for a realistic portrait look matching the "Drea" aesthetic.
+ * for a hyper-realistic portrait look. Works with any GLB head model
+ * that has ARKit-compatible morph targets (MetaHuman, Avaturn, etc.).
  */
 export function AvatarCanvas({
   modelUri,

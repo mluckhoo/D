@@ -1,11 +1,12 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber/native';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { ARKIT_BLENDSHAPE_NAMES, BlendshapeName } from '../utils/blendshapeMap';
+import { buildArkitIndexMap, detectNamingConvention } from '../utils/metahumanMap';
 
 interface AvatarModelProps {
-  /** URI to the GLB avatar model (Ready Player Me export) */
+  /** URI to a GLB avatar model (MetaHuman export, Avaturn, or any ARKit-rigged head) */
   uri: string;
   /** Run a demo animation cycling through blendshapes */
   demoAnimation?: boolean;
@@ -14,17 +15,22 @@ interface AvatarModelProps {
 }
 
 /**
- * Loads a Ready Player Me GLB avatar and drives its morph targets.
+ * Loads a GLB avatar and drives its ARKit morph targets.
  *
- * The model must be exported with ?morphTargets=ARKit to include
- * all 52 ARKit blendshapes. This component:
+ * Supports multiple avatar sources and blendshape naming conventions:
  *
+ * - **Unreal MetaHuman** — exported via UE5.6+ DCC Export or Blender conversion.
+ *   MetaHuman uses FACS-based names (e.g. CTRL_expressions_browDownL) which are
+ *   auto-mapped to ARKit names at load time.
+ *
+ * - **Avaturn / other ARKit-rigged GLBs** — use standard ARKit names directly.
+ *
+ * The component:
  * 1. Loads the GLB using Three.js GLTFLoader
  * 2. Finds all SkinnedMesh nodes with morphTargetDictionary
- * 3. On each frame, applies blendshape weights to morphTargetInfluences
- *
- * Supports both external blendshape control (from useBlendshapes hook)
- * and a built-in demo animation for testing.
+ * 3. Auto-detects the blendshape naming convention (ARKit vs MetaHuman FACS)
+ * 4. Builds an ARKit-name → morph-target-index lookup per mesh
+ * 5. On each frame, applies blendshape weights via morphTargetInfluences
  */
 export function AvatarModel({
   uri,
@@ -32,7 +38,7 @@ export function AvatarModel({
   blendshapeValues,
 }: AvatarModelProps) {
   const groupRef = useRef<THREE.Group>(null);
-  const meshesRef = useRef<THREE.SkinnedMesh[]>([]);
+  const meshesRef = useRef<MeshWithMapping[]>([]);
   const [scene, setScene] = useState<THREE.Group | null>(null);
 
   // Load the GLB model
@@ -44,17 +50,31 @@ export function AvatarModel({
       (gltf) => {
         const loadedScene = gltf.scene;
 
-        // Collect all skinned meshes with morph targets
-        const meshes: THREE.SkinnedMesh[] = [];
+        // Collect all skinned meshes with morph targets and build index maps
+        const meshes: MeshWithMapping[] = [];
         loadedScene.traverse((child) => {
           if (
             child instanceof THREE.SkinnedMesh &&
             child.morphTargetDictionary &&
             child.morphTargetInfluences
           ) {
-            // Ensure morph targets are initialized
             child.updateMorphTargets();
-            meshes.push(child);
+
+            const indexMap = buildArkitIndexMap(child.morphTargetDictionary);
+            const convention = detectNamingConvention(
+              Object.keys(child.morphTargetDictionary)
+            );
+
+            meshes.push({ mesh: child, indexMap });
+
+            const mapped = Object.values(indexMap).filter(
+              (v) => v !== undefined
+            ).length;
+            console.log(
+              `[Avatar] mesh "${child.name}": ${
+                Object.keys(child.morphTargetDictionary).length
+              } morph targets (convention: ${convention}, ${mapped}/52 ARKit mapped)`
+            );
           }
         });
 
@@ -62,21 +82,17 @@ export function AvatarModel({
         setScene(loadedScene);
 
         console.log(
-          `Avatar loaded: ${meshes.length} mesh(es) with morph targets`,
-          meshes.map((m) => ({
-            name: m.name,
-            targets: Object.keys(m.morphTargetDictionary ?? {}).length,
-          }))
+          `[Avatar] MetaHuman GLB loaded: ${meshes.length} mesh(es) with morph targets`
         );
       },
       undefined,
       (error) => {
-        console.error('Failed to load avatar GLB:', error);
+        console.error('[Avatar] Failed to load GLB:', error);
       }
     );
   }, [uri]);
 
-  // Demo animation: cycle through jawOpen and smile
+  // Per-frame blendshape animation
   useFrame(({ clock }) => {
     const meshes = meshesRef.current;
     if (meshes.length === 0) return;
@@ -93,26 +109,23 @@ export function AvatarModel({
       // Brow raise — gentle
       const browUp = Math.max(0, Math.sin(t * 0.5) * 0.3);
 
-      for (const mesh of meshes) {
-        const dict = mesh.morphTargetDictionary!;
+      for (const { mesh, indexMap } of meshes) {
         const influences = mesh.morphTargetInfluences!;
-
-        applyBlendshape(dict, influences, 'jawOpen', jawOpen);
-        applyBlendshape(dict, influences, 'mouthSmileLeft', smile);
-        applyBlendshape(dict, influences, 'mouthSmileRight', smile);
-        applyBlendshape(dict, influences, 'eyeBlinkLeft', blink);
-        applyBlendshape(dict, influences, 'eyeBlinkRight', blink);
-        applyBlendshape(dict, influences, 'browInnerUp', browUp);
+        applyMapped(indexMap, influences, 'jawOpen', jawOpen);
+        applyMapped(indexMap, influences, 'mouthSmileLeft', smile);
+        applyMapped(indexMap, influences, 'mouthSmileRight', smile);
+        applyMapped(indexMap, influences, 'eyeBlinkLeft', blink);
+        applyMapped(indexMap, influences, 'eyeBlinkRight', blink);
+        applyMapped(indexMap, influences, 'browInnerUp', browUp);
       }
     } else if (blendshapeValues) {
       // Apply external blendshape values (from Audio2Face-3D via server)
-      for (const mesh of meshes) {
-        const dict = mesh.morphTargetDictionary!;
+      for (const { mesh, indexMap } of meshes) {
         const influences = mesh.morphTargetInfluences!;
 
         for (const name of ARKIT_BLENDSHAPE_NAMES) {
           const value = blendshapeValues[name] ?? 0;
-          const idx = dict[name];
+          const idx = indexMap[name];
           if (idx !== undefined) {
             // Smooth interpolation (exponential moving average)
             influences[idx] += (value - influences[idx]) * 0.5;
@@ -131,14 +144,20 @@ export function AvatarModel({
   );
 }
 
-/** Apply a single blendshape value to a mesh */
-function applyBlendshape(
-  dict: Record<string, number>,
+/** A mesh paired with its ARKit-name → morph-index lookup */
+interface MeshWithMapping {
+  mesh: THREE.SkinnedMesh;
+  indexMap: Record<BlendshapeName, number | undefined>;
+}
+
+/** Apply a blendshape value using the pre-built ARKit index map */
+function applyMapped(
+  indexMap: Record<BlendshapeName, number | undefined>,
   influences: number[],
-  name: string,
+  name: BlendshapeName,
   value: number
 ) {
-  const idx = dict[name];
+  const idx = indexMap[name];
   if (idx !== undefined) {
     influences[idx] = value;
   }

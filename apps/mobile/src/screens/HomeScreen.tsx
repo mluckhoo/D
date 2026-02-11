@@ -13,8 +13,22 @@ import { decodeAvatarFrame, ServerMessageType } from '../services/socketProtocol
 // Server URL — configure via environment or settings screen
 const WS_URL = 'ws://localhost:8080/ws/chat';
 
-// Placeholder avatar model — replace with Ready Player Me GLB export URL:
-// https://models.readyplayer.me/{AVATAR_ID}.glb?morphTargets=ARKit&textureAtlas=1024
+// ---------------------------------------------------------------------------
+// MetaHuman Avatar GLB
+// ---------------------------------------------------------------------------
+// Place your exported MetaHuman GLB in assets/ and reference it here.
+//
+// Export pipeline (UE5.6+):
+//   1. Create avatar in MetaHuman Creator (metahuman.unrealengine.com)
+//   2. In UE5: right-click MetaHuman → Export → "Export as FBX (DCC)"
+//   3. Import FBX into Blender → export as GLB (include morph targets)
+//   4. Place the GLB file in apps/mobile/assets/avatar/metahuman.glb
+//
+// The AvatarModel component auto-detects MetaHuman FACS naming and maps
+// it to ARKit's 52 blendshapes for Audio2Face-3D compatibility.
+//
+// Alternatively, host the GLB remotely and set a URL string here.
+// ---------------------------------------------------------------------------
 const AVATAR_MODEL_URI: string | undefined = undefined;
 
 interface ChatMessage {

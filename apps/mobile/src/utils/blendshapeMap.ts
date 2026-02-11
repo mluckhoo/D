@@ -1,9 +1,12 @@
 /**
- * ARKit blendshape name ↔ index mapping for Ready Player Me avatars.
+ * The canonical 52 ARKit blendshape names.
  *
- * Ready Player Me GLB models expose morph targets via mesh.morphTargetDictionary,
- * which maps names to indices. This module provides the canonical 52 ARKit names
- * for use when driving animation from Audio2Face-3D blendshape output.
+ * GLB avatar models (MetaHuman, Avaturn, etc.) expose morph targets via
+ * mesh.morphTargetDictionary. This module provides the standard 52 ARKit
+ * names used when driving facial animation from Audio2Face-3D output.
+ *
+ * MetaHuman models may use different naming conventions (FACS-based) —
+ * see metahumanMap.ts for the automatic name translation layer.
  */
 
 export const ARKIT_BLENDSHAPE_NAMES = [

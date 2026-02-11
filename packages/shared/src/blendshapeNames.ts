@@ -1,8 +1,10 @@
 /**
- * The 52 ARKit blendshape names used by Ready Player Me avatars
+ * The 52 ARKit blendshape names used by MetaHuman avatars
  * and NVIDIA Audio2Face-3D output.
  *
  * Index order matches the Audio2Face-3D SkelAnimation output.
+ * MetaHuman models may use FACS-based naming; the mobile client's
+ * metahumanMap.ts handles the translation to these canonical names.
  */
 export const ARKIT_BLENDSHAPE_NAMES = [
   'browDownLeft',
