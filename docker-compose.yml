@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  # Backend server (WebSocket + REST)
+  server:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+    ports:
+      - '8080:8080'
+    env_file:
+      - apps/server/.env
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:8080/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # PersonaPlex server (Phase 4 — requires GPU)
+  # Uncomment when ready to integrate PersonaPlex
+  #
+  # personaplex:
+  #   image: nvcr.io/nvidia/personaplex:latest
+  #   ports:
+  #     - '8998:8998'
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: 1
+  #             capabilities: [gpu]
+  #   volumes:
+  #     - ./models:/models
+  #   command: >
+  #     python -m moshi.server
+  #     --host 0.0.0.0
+  #     --port 8998
+  #     --hf-repo nvidia/personaplex-7b-v1
