@@ -1,0 +1,13 @@
+{
+  "name": "realistic-face-voice-app",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "mobile": "npm run start --workspace=apps/mobile",
+    "server": "npm run dev --workspace=apps/server",
+    "server:build": "npm run build --workspace=apps/server"
+  }
+}

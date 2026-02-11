@@ -1,0 +1,37 @@
+{
+  "expo": {
+    "name": "Drea",
+    "slug": "drea-avatar",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "scheme": "drea",
+    "splash": {
+      "backgroundColor": "#0a0a0a"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.app.drea",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "Drea needs microphone access for voice conversations."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0a0a0a"
+      },
+      "package": "com.app.drea",
+      "permissions": ["RECORD_AUDIO"]
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-av",
+        {
+          "microphonePermission": "Drea needs microphone access for voice conversations."
+        }
+      ]
+    ]
+  }
+}
