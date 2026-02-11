@@ -5,6 +5,9 @@
     "packages/*",
     "apps/*"
   ],
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "mobile": "npm run start --workspace=apps/mobile",
     "server": "npm run dev --workspace=apps/server",
