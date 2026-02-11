@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useFrame } from '@react-three/fiber/native';
+import { useFrame } from '../utils/r3f';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { ARKIT_BLENDSHAPE_NAMES, BlendshapeName } from '../utils/blendshapeMap';

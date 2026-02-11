@@ -1,5 +1,5 @@
 import React from 'react';
-import { Canvas } from '@react-three/fiber/native';
+import { Canvas } from '../utils/r3f';
 import { AvatarModel } from './AvatarModel';
 
 interface AvatarCanvasProps {
