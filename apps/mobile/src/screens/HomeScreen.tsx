@@ -45,7 +45,8 @@ const WS_URL = 'ws://localhost:8080/ws/chat';
 //
 // Set to undefined to show the placeholder (demo animation still works).
 // ---------------------------------------------------------------------------
-const AVATAR_MODEL_URI: string | undefined = undefined;
+const AVATAR_MODEL_URI: string | undefined =
+  'https://models.readyplayer.me/6185a4acfb622cf1cdc49348.glb?morphTargets=ARKit';
 
 interface ChatMessage {
   role: 'user' | 'assistant';

@@ -40,6 +40,8 @@ export function AvatarModel({
   const groupRef = useRef<THREE.Group>(null);
   const meshesRef = useRef<MeshWithMapping[]>([]);
   const [scene, setScene] = useState<THREE.Group | null>(null);
+  // Auto-computed Y offset to centre the head at camera level
+  const [yOffset, setYOffset] = useState(-0.15);
 
   // Load the GLB model
   useEffect(() => {
@@ -78,11 +80,22 @@ export function AvatarModel({
           }
         });
 
+        // Auto-frame: compute bounding box and offset so head is at camera level.
+        // Full-body avatars (e.g. Ready Player Me, ~1.8m tall) need the model
+        // shifted down so the face is centred on camera. Head-only models stay
+        // near origin.
+        const box = new THREE.Box3().setFromObject(loadedScene);
+        const height = box.max.y - box.min.y;
+        const computedOffset = height > 0.5
+          ? -(box.max.y - 0.12)   // Full-body: shift so face sits at camera y
+          : -0.15;                 // Head-only: small offset to centre
+        setYOffset(computedOffset);
+
         meshesRef.current = meshes;
         setScene(loadedScene);
 
         console.log(
-          `[Avatar] MetaHuman GLB loaded: ${meshes.length} mesh(es) with morph targets`
+          `[Avatar] GLB loaded: ${meshes.length} mesh(es), height=${height.toFixed(2)}m, yOffset=${computedOffset.toFixed(2)}`
         );
       },
       undefined,
@@ -138,7 +151,7 @@ export function AvatarModel({
   if (!scene) return null;
 
   return (
-    <group ref={groupRef} position={[0, -0.15, 0]} scale={1}>
+    <group ref={groupRef} position={[0, yOffset, 0]} scale={1}>
       <primitive object={scene} />
     </group>
   );
