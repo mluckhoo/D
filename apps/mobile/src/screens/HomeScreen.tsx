@@ -14,20 +14,36 @@ import { decodeAvatarFrame, ServerMessageType } from '../services/socketProtocol
 const WS_URL = 'ws://localhost:8080/ws/chat';
 
 // ---------------------------------------------------------------------------
-// MetaHuman Avatar GLB
+// Avatar Model GLB
 // ---------------------------------------------------------------------------
-// Place your exported MetaHuman GLB in assets/ and reference it here.
+// The AvatarModel component accepts any GLB with ARKit-compatible morph
+// targets. It auto-detects naming conventions (ARKit, MetaHuman FACS, etc.)
+// and maps everything to the canonical 52 ARKit blendshapes.
 //
-// Export pipeline (UE5.6+):
+// ── Option A: Ready Player Me (easiest — recommended for public demos) ──
+//   1. Go to https://readyplayer.me and create an avatar
+//   2. Copy the avatar URL (e.g. https://models.readyplayer.me/<id>.glb)
+//   3. Append ?morphTargets=ARKit to the URL
+//   4. Paste the full URL below
+//
+//   Example:
+//     const AVATAR_MODEL_URI = 'https://models.readyplayer.me/<your-id>.glb?morphTargets=ARKit';
+//
+// ── Option B: Avaturn ──
+//   1. Create an avatar at https://avaturn.me
+//   2. Export as GLB with ARKit blendshapes enabled
+//   3. Host the file or place in assets/avatar/ and use require()
+//
+// ── Option C: Unreal MetaHuman (advanced) ──
 //   1. Create avatar in MetaHuman Creator (metahuman.unrealengine.com)
 //   2. In UE5: right-click MetaHuman → Export → "Export as FBX (DCC)"
 //   3. Import FBX into Blender → export as GLB (include morph targets)
-//   4. Place the GLB file in apps/mobile/assets/avatar/metahuman.glb
+//   4. Place at assets/avatar/metahuman.glb and use require()
 //
-// The AvatarModel component auto-detects MetaHuman FACS naming and maps
-// it to ARKit's 52 blendshapes for Audio2Face-3D compatibility.
+// For local files:
+//   const AVATAR_MODEL_URI = require('../assets/avatar/avatar.glb');
 //
-// Alternatively, host the GLB remotely and set a URL string here.
+// Set to undefined to show the placeholder (demo animation still works).
 // ---------------------------------------------------------------------------
 const AVATAR_MODEL_URI: string | undefined = undefined;
 

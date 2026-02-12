@@ -64,12 +64,25 @@ export function AvatarCanvas({
   );
 }
 
-/** Simple placeholder sphere when no model is loaded */
+/**
+ * Stylised placeholder shown when no GLB avatar is loaded.
+ *
+ * Renders a head-shaped silhouette so the demo still looks intentional
+ * while the user sets up their avatar model.
+ */
 function AvatarPlaceholder() {
   return (
-    <mesh position={[0, 0, 0]}>
-      <sphereGeometry args={[0.15, 32, 32]} />
-      <meshStandardMaterial color="#4a4a5a" />
-    </mesh>
+    <group position={[0, -0.02, 0]}>
+      {/* Head */}
+      <mesh position={[0, 0.04, 0]}>
+        <sphereGeometry args={[0.13, 48, 48]} />
+        <meshStandardMaterial color="#3a3a4a" roughness={0.6} metalness={0.1} />
+      </mesh>
+      {/* Neck hint */}
+      <mesh position={[0, -0.1, 0]}>
+        <cylinderGeometry args={[0.05, 0.06, 0.06, 24]} />
+        <meshStandardMaterial color="#3a3a4a" roughness={0.6} metalness={0.1} />
+      </mesh>
+    </group>
   );
 }
